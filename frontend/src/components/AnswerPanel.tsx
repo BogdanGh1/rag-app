@@ -44,7 +44,7 @@ export function AnswerPanel({ result, isLoading }: AnswerPanelProps) {
                 <div key={i} className="p-3 bg-gray-50 rounded border border-gray-200">
                   <div className="flex justify-between items-center mb-1">
                     <p className="text-xs font-medium text-gray-700">{source.filename}</p>
-                    {source.score !== undefined && (
+                    {source.score != null && (
                       <p className="text-xs text-gray-400 font-mono">
                         score: {source.score.toFixed(3)}
                       </p>
