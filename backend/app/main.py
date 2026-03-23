@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.config import settings
-from app.core.retriever_factory import init_backends, shutdown_backends
+from app.core.retriever_factory import init_backends
 
 os.environ["ANONYMIZED_TELEMETRY"] = str(settings.anonymized_telemetry)
 
@@ -15,7 +15,6 @@ os.environ["ANONYMIZED_TELEMETRY"] = str(settings.anonymized_telemetry)
 async def lifespan(app: FastAPI):
     await init_backends()
     yield
-    await shutdown_backends()
 
 
 app = FastAPI(

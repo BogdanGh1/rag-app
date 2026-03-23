@@ -1,13 +1,3 @@
-export interface BackendInfo {
-  name: string
-  active: boolean
-}
-
-export interface BackendsResponse {
-  backends: BackendInfo[]
-  active: string
-}
-
 export interface UploadResponse {
   document_id: string
   filename: string
@@ -39,7 +29,7 @@ export interface QueryResponse {
 
 export interface QueryRequest {
   question: string
-  backend?: string
+  backend: string
   top_k?: number
   llm_model?: string
 }

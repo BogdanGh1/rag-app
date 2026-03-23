@@ -3,7 +3,7 @@ import time
 from fastapi import APIRouter, HTTPException
 
 from app.core.qa_chain import build_chain, format_sources
-from app.core.retriever_factory import get_active_backend, get_backend
+from app.core.retriever_factory import get_backend
 from app.models.requests import QueryRequest
 from app.models.responses import QueryResponse
 
@@ -13,7 +13,7 @@ router = APIRouter()
 @router.post("/query", response_model=QueryResponse)
 async def query_documents(request: QueryRequest):
     try:
-        backend = get_backend(request.backend) if request.backend else get_active_backend()
+        backend = get_backend(request.backend)
         retriever = backend.get_retriever(top_k=request.top_k)
         chain = build_chain(retriever, llm_model=request.llm_model)
 

@@ -32,11 +32,3 @@ class QueryResponse(BaseModel):
     latency_ms: int
 
 
-class BackendInfo(BaseModel):
-    name: str
-    active: bool
-
-
-class BackendsResponse(BaseModel):
-    backends: list[BackendInfo]
-    active: str

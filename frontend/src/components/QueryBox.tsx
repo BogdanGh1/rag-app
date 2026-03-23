@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { QueryRequest } from '../types/api'
 
 interface QueryBoxProps {
-  onAsk: (request: QueryRequest) => void
+  onAsk: (request: Omit<QueryRequest, 'backend'>) => void
   isLoading: boolean
 }
 
