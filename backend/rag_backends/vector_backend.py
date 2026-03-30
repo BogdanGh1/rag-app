@@ -3,31 +3,22 @@ import os
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 
-from app.backends.base import StorageBackend
-from app.config import settings
-
-
-def _get_embeddings():
-    from langchain_openai import OpenAIEmbeddings
-
-    return OpenAIEmbeddings(
-        model=settings.embedding_model,
-        api_key=settings.openai_api_key,
-    )
+from rag_backends.base import StorageBackend
 
 
 class VectorBackend(StorageBackend):
     name = "vector"
 
-    def __init__(self):
+    def __init__(self, *, chroma_persist_dir: str, embedding_model: str, openai_api_key: str):
         from langchain_chroma import Chroma
+        from langchain_openai import OpenAIEmbeddings
 
-        os.makedirs(settings.chroma_persist_dir, exist_ok=True)
-        self._embeddings = _get_embeddings()
+        os.makedirs(chroma_persist_dir, exist_ok=True)
+        embeddings = OpenAIEmbeddings(model=embedding_model, api_key=openai_api_key)
         self._store = Chroma(
             collection_name="rag_documents",
-            embedding_function=self._embeddings,
-            persist_directory=settings.chroma_persist_dir,
+            embedding_function=embeddings,
+            persist_directory=chroma_persist_dir,
         )
 
     async def ingest(self, document_id: str, filename: str, chunks: list[Document]) -> int:

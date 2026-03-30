@@ -6,15 +6,12 @@ dependencies = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.32",
   "python-multipart>=0.0.12",
+  "rag-backends",
   "langchain>=0.3",
   "langchain-community>=0.3",
   "langchain-core>=0.3",
-  "langchain-openai>=0.2",
-  "langchain-chroma>=0.1",
-  "chromadb>=0.5",
   "sqlalchemy>=2.0",
   "aiosqlite>=0.20",
-  "rank-bm25>=0.2.2",
   "pypdf>=5.0",
   "python-docx>=1.1",
   "unstructured>=0.16",
@@ -46,6 +43,9 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.uv.sources]
+rag-backends = { path = "./rag_backends" }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

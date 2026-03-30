@@ -5,8 +5,7 @@ from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 
-from app.backends.base import StorageBackend
-from app.config import settings
+from rag_backends.base import StorageBackend
 
 _INIT_SQL = """
 CREATE TABLE IF NOT EXISTS documents (
@@ -37,7 +36,6 @@ class SQLRetriever(BaseRetriever):
     ) -> list[Document]:
         conn = sqlite3.connect(self.db_path)
         try:
-            # Escape double-quotes in query to avoid FTS5 syntax errors
             safe_query = query.replace('"', '""')
             cursor = conn.execute(
                 """
@@ -71,9 +69,9 @@ class SQLRetriever(BaseRetriever):
 class SQLBackend(StorageBackend):
     name = "sql"
 
-    def __init__(self):
-        os.makedirs(os.path.dirname(os.path.abspath(settings.sqlite_path)), exist_ok=True)
-        self.db_path = settings.sqlite_path
+    def __init__(self, *, db_path: str):
+        os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
+        self.db_path = db_path
         self._init_db()
 
     def _init_db(self):

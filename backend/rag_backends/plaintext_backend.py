@@ -6,11 +6,7 @@ from langchain_core.documents import Document
 from langchain_core.retrievers import BaseRetriever
 from rank_bm25 import BM25Okapi
 
-from app.backends.base import StorageBackend
-from app.config import settings
-
-# Persisted JSON-lines file lives next to the uploads directory
-_CHUNKS_FILE = Path(settings.upload_dir).parent / "bm25_chunks.jsonl"
+from rag_backends.base import StorageBackend
 
 
 class BM25Retriever(BaseRetriever):
@@ -52,18 +48,19 @@ class BM25Retriever(BaseRetriever):
 class PlaintextBackend(StorageBackend):
     name = "plaintext"
 
-    def __init__(self):
-        _CHUNKS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    def __init__(self, *, chunks_file: str | Path):
+        self._chunks_file = Path(chunks_file)
+        self._chunks_file.parent.mkdir(parents=True, exist_ok=True)
         self._chunks: list[dict] = []
         self._load()
 
     def _load(self):
-        if _CHUNKS_FILE.exists():
-            with open(_CHUNKS_FILE) as f:
+        if self._chunks_file.exists():
+            with open(self._chunks_file) as f:
                 self._chunks = [json.loads(line) for line in f if line.strip()]
 
     def _save(self):
-        with open(_CHUNKS_FILE, "w") as f:
+        with open(self._chunks_file, "w") as f:
             for chunk in self._chunks:
                 f.write(json.dumps(chunk) + "\n")
 

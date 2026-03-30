@@ -6,7 +6,7 @@ from fastapi import UploadFile
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from app.backends.base import StorageBackend
+from rag_backends.base import StorageBackend
 from app.config import settings
 from app.models.responses import UploadResponse
 from app.utils.file_utils import save_upload

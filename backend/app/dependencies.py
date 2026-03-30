@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import Depends, Query
 from langchain_core.retrievers import BaseRetriever
 
-from app.backends.base import StorageBackend
+from rag_backends.base import StorageBackend
 from app.core.retriever_factory import get_active_backend as _get_active
 
 

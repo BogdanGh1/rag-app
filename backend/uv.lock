@@ -3308,20 +3308,17 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiosqlite" },
-    { name = "chromadb" },
     { name = "fastapi" },
     { name = "langchain" },
-    { name = "langchain-chroma" },
     { name = "langchain-community" },
     { name = "langchain-core" },
-    { name = "langchain-openai" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pypdf" },
     { name = "python-docx" },
     { name = "python-dotenv" },
     { name = "python-multipart" },
-    { name = "rank-bm25" },
+    { name = "rag-backends" },
     { name = "sqlalchemy" },
     { name = "unstructured" },
     { name = "uvicorn", extra = ["standard"] },
@@ -3340,16 +3337,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiosqlite", specifier = ">=0.20" },
-    { name = "chromadb", specifier = ">=0.5" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
     { name = "ipykernel", marker = "extra == 'dev'", specifier = ">=6.29" },
     { name = "jupyter", marker = "extra == 'dev'", specifier = ">=1.1" },
     { name = "langchain", specifier = ">=0.3" },
-    { name = "langchain-chroma", specifier = ">=0.1" },
     { name = "langchain-community", specifier = ">=0.3" },
     { name = "langchain-core", specifier = ">=0.3" },
-    { name = "langchain-openai", specifier = ">=0.2" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "pypdf", specifier = ">=5.0" },
@@ -3358,13 +3352,36 @@ requires-dist = [
     { name = "python-docx", specifier = ">=1.1" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "python-multipart", specifier = ">=0.0.12" },
-    { name = "rank-bm25", specifier = ">=0.2.2" },
+    { name = "rag-backends", directory = "rag_backends" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8" },
     { name = "sqlalchemy", specifier = ">=2.0" },
     { name = "unstructured", specifier = ">=0.16" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.32" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "rag-backends"
+version = "0.1.0"
+source = { directory = "rag_backends" }
+dependencies = [
+    { name = "chromadb" },
+    { name = "langchain" },
+    { name = "langchain-chroma" },
+    { name = "langchain-core" },
+    { name = "langchain-openai" },
+    { name = "rank-bm25" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "chromadb", specifier = ">=0.5" },
+    { name = "langchain", specifier = ">=0.3" },
+    { name = "langchain-chroma", specifier = ">=0.1" },
+    { name = "langchain-core", specifier = ">=0.3" },
+    { name = "langchain-openai", specifier = ">=0.2" },
+    { name = "rank-bm25", specifier = ">=0.2.2" },
+]
 
 [[package]]
 name = "rank-bm25"
