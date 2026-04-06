@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { QueryRequest } from '../types/api'
 
 interface QueryBoxProps {
-  onAsk: (request: Omit<QueryRequest, 'backend'>) => void
+  onAsk: (request: Omit<QueryRequest, 'db_id'>) => void
   isLoading: boolean
 }
 

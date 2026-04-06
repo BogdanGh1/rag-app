@@ -3,6 +3,13 @@ from typing import Any
 from pydantic import BaseModel
 
 
+class DatabaseResponse(BaseModel):
+    id: str
+    name: str
+    backend_type: str
+    created_at: Any = None
+
+
 class UploadResponse(BaseModel):
     document_id: str
     filename: str

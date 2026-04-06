@@ -1,3 +1,10 @@
+export interface Database {
+  id: string
+  name: string
+  backend_type: string
+  created_at?: string
+}
+
 export interface UploadResponse {
   document_id: string
   filename: string
@@ -29,7 +36,7 @@ export interface QueryResponse {
 
 export interface QueryRequest {
   question: string
-  backend: string
+  db_id: string
   top_k?: number
   llm_model?: string
 }

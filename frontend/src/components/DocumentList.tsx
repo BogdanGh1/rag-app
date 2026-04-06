@@ -1,11 +1,11 @@
 import { useDocuments } from '../hooks/useDocuments'
 
 interface DocumentListProps {
-  backend: string
+  dbId: string
 }
 
-export function DocumentList({ backend }: DocumentListProps) {
-  const { documents, isLoading, deleteDocument, isDeleting } = useDocuments(backend)
+export function DocumentList({ dbId }: DocumentListProps) {
+  const { documents, isLoading, deleteDocument, isDeleting } = useDocuments(dbId)
 
   if (isLoading) {
     return <div className="text-sm text-gray-500">Loading documents...</div>

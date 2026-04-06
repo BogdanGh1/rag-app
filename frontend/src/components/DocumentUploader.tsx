@@ -2,11 +2,11 @@ import { useRef, useState } from 'react'
 import { useDocuments } from '../hooks/useDocuments'
 
 interface DocumentUploaderProps {
-  backend: string
+  dbId: string
 }
 
-export function DocumentUploader({ backend }: DocumentUploaderProps) {
-  const { uploadFiles, isUploading, uploadError } = useDocuments(backend)
+export function DocumentUploader({ dbId }: DocumentUploaderProps) {
+  const { uploadFiles, isUploading, uploadError } = useDocuments(dbId)
   const [isDragging, setIsDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
