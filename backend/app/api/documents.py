@@ -1,9 +1,11 @@
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.ingestion import ingest_file
 from app.core.retriever_factory import get_database_backend
 from app.db.database import get_db
@@ -64,4 +66,6 @@ async def delete_document(
     deleted = await get_database_backend(db_id, database.backend_type, current_user.id).delete_document(document_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Document not found")
+    for f in Path(settings.upload_dir).glob(f"{document_id}.*"):
+        f.unlink(missing_ok=True)
     return {"deleted": True, "document_id": document_id}
