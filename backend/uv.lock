@@ -3446,9 +3446,14 @@ dependencies = [
     { name = "chromadb" },
     { name = "langchain" },
     { name = "langchain-chroma" },
+    { name = "langchain-community" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
+    { name = "langchain-text-splitters" },
+    { name = "pypdf" },
+    { name = "python-docx" },
     { name = "rank-bm25" },
+    { name = "unstructured" },
 ]
 
 [package.metadata]
@@ -3456,9 +3461,14 @@ requires-dist = [
     { name = "chromadb", specifier = ">=0.5" },
     { name = "langchain", specifier = ">=0.3" },
     { name = "langchain-chroma", specifier = ">=0.1" },
+    { name = "langchain-community", specifier = ">=0.3" },
     { name = "langchain-core", specifier = ">=0.3" },
     { name = "langchain-openai", specifier = ">=0.2" },
+    { name = "langchain-text-splitters", specifier = ">=0.3" },
+    { name = "pypdf", specifier = ">=5.0" },
+    { name = "python-docx", specifier = ">=1.1" },
     { name = "rank-bm25", specifier = ">=0.2.2" },
+    { name = "unstructured", specifier = ">=0.16" },
 ]
 
 [[package]]
