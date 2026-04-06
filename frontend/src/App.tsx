@@ -47,13 +47,13 @@ function App() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 px-8 py-8">
+        <main className="flex-1 px-8 py-8 flex flex-col">
           {!selectedDb ? (
             <div className="text-center py-20 text-gray-500">
               <p className="text-lg">Select or create a database to get started.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full h-full">
               <div className="space-y-6">
                 <DocumentUploader dbId={selectedDb.id} />
                 <DocumentList dbId={selectedDb.id} />
