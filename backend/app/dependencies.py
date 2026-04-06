@@ -1,18 +1,29 @@
 from typing import Annotated
 
-from fastapi import Depends, Query
-from langchain_core.retrievers import BaseRetriever
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from rag_backends.base import StorageBackend
-from app.core.retriever_factory import get_active_backend as _get_active
+from app.core.security import decode_token
+from app.db.database import get_db
+from app.db.models import User
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
-def active_backend() -> StorageBackend:
-    return _get_active()
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    try:
+        user_id = decode_token(token)
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-
-def retriever_dep(
-    backend: Annotated[StorageBackend, Depends(active_backend)],
-    top_k: int = Query(default=4, ge=1, le=20),
-) -> BaseRetriever:
-    return backend.get_retriever(top_k=top_k)
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user

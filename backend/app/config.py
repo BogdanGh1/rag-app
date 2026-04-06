@@ -24,5 +24,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173"]
     anonymized_telemetry: bool = False
 
+    database_url: str = "postgresql+asyncpg://rag:rag@localhost:5432/rag"
+    secret_key: str = "change-me-in-production-use-a-long-random-string"
+    access_token_expire_minutes: int = 60 * 24  # 24 hours
+
 
 settings = Settings()

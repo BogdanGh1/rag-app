@@ -3,6 +3,10 @@ set -e
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
+echo "Starting PostgreSQL..."
+docker compose -f "$ROOT/docker-compose.yml" up -d
+echo "PostgreSQL is up."
+
 echo "Starting backend..."
 cd "$ROOT/backend"
 uv run uvicorn app.main:app --reload &
@@ -13,7 +17,7 @@ cd "$ROOT/frontend"
 npm run dev &
 FRONTEND_PID=$!
 
-trap "kill $BACKEND_PID $FRONTEND_PID 2>/dev/null" EXIT INT TERM
+trap "kill $BACKEND_PID $FRONTEND_PID 2>/dev/null; docker compose -f '$ROOT/docker-compose.yml' stop" EXIT INT TERM
 
 echo "Backend PID: $BACKEND_PID | Frontend PID: $FRONTEND_PID"
 echo "Press Ctrl+C to stop."

@@ -33,3 +33,15 @@ export interface QueryRequest {
   top_k?: number
   llm_model?: string
 }
+
+export interface TokenResponse {
+  access_token: string
+  token_type: string
+  username: string
+}
+
+export interface MeResponse {
+  id: string
+  username: string
+  email: string
+}
