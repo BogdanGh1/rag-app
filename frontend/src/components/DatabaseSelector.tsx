@@ -26,6 +26,12 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
     onChange(db)
   }
 
+  const closeModal = () => {
+    setShowCreate(false)
+    setNewName('')
+    setNewBackend('vector')
+  }
+
   const handleDelete = (e: React.MouseEvent, dbId: string) => {
     e.stopPropagation()
     deleteDatabase(dbId)
@@ -41,7 +47,7 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Databases</span>
         <button
-          onClick={() => setShowCreate(v => !v)}
+          onClick={() => setShowCreate(true)}
           className="px-3 py-1.5 text-sm font-medium rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition-colors"
         >
           + New
@@ -49,49 +55,63 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
       </div>
 
       {showCreate && (
-        <form
-          onSubmit={handleCreate}
-          className="flex flex-col gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50"
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={closeModal}
         >
-          <input
-            type="text"
-            placeholder="Database name"
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            autoFocus
-          />
-          <select
-            value={newBackend}
-            onChange={e => setNewBackend(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 flex flex-col gap-4"
+            onClick={e => e.stopPropagation()}
           >
-            {backends.map(b => (
-              <option key={b} value={b}>{b}</option>
-            ))}
-          </select>
-          {createError && (
-            <p className="text-xs text-red-600">
-              {(createError as any)?.response?.data?.detail ?? createError.message}
-            </p>
-          )}
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              disabled={isCreating || !newName.trim()}
-              className="flex-1 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
-              {isCreating ? 'Creating...' : 'Create'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowCreate(false)}
-              className="flex-1 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
-            >
-              Cancel
-            </button>
+            <h2 className="text-base font-semibold text-gray-800">New database</h2>
+            <form onSubmit={handleCreate} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-600">Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. research-papers"
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  autoFocus
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-600">Backend</label>
+                <select
+                  value={newBackend}
+                  onChange={e => setNewBackend(e.target.value)}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                >
+                  {backends.map(b => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+              {createError && (
+                <p className="text-xs text-red-600">
+                  {(createError as any)?.response?.data?.detail ?? createError.message}
+                </p>
+              )}
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={isCreating || !newName.trim()}
+                  className="flex-1 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isCreating ? 'Creating...' : 'Create'}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="flex-1 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       )}
 
       {databases.length === 0 ? (
