@@ -8,6 +8,7 @@ export function useDocuments(dbId: string) {
     queryKey: ['documents', dbId],
     queryFn: () => getDocuments(dbId),
     enabled: !!dbId,
+    staleTime: 1000 * 60 * 5, // treat cached data as fresh for 5 minutes
   })
 
   const uploadMutation = useMutation({
