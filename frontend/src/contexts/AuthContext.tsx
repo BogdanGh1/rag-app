@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { login as apiLogin, register as apiRegister } from '../api/auth'
 
 interface AuthState {
@@ -22,6 +22,14 @@ function loadInitialState(): AuthState {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>(loadInitialState)
+
+  useEffect(() => {
+    function handleForceLogout() {
+      setState({ token: null, username: null })
+    }
+    window.addEventListener('auth:logout', handleForceLogout)
+    return () => window.removeEventListener('auth:logout', handleForceLogout)
+  }, [])
 
   async function login(username: string, password: string) {
     const data = await apiLogin(username, password)
