@@ -2,6 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
+from app.models.requests import DatabaseSettings
+
 
 class DatabaseResponse(BaseModel):
     id: str
@@ -9,6 +11,7 @@ class DatabaseResponse(BaseModel):
     description: str | None = None
     backend_type: str
     created_at: Any = None
+    settings: DatabaseSettings | None = None
 
 
 class UploadResponse(BaseModel):

@@ -17,10 +17,16 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [newBackend, setNewBackend] = useState('vector')
+  const [newChunkSize, setNewChunkSize] = useState(800)
+  const [newChunkOverlap, setNewChunkOverlap] = useState(100)
+  const [newSectionBased, setNewSectionBased] = useState(false)
 
   const [editingDb, setEditingDb] = useState<Database | null>(null)
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
+  const [editChunkSize, setEditChunkSize] = useState(800)
+  const [editChunkOverlap, setEditChunkOverlap] = useState(100)
+  const [editSectionBased, setEditSectionBased] = useState(false)
 
   const [confirmDeleteDb, setConfirmDeleteDb] = useState<Database | null>(null)
 
@@ -31,6 +37,7 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
       name: newName.trim(),
       description: newDescription.trim() || undefined,
       backend_type: newBackend,
+      settings: { chunk: { chunk_size: newChunkSize, chunk_overlap: newChunkOverlap, section_based: newSectionBased } },
     })
     setNewName('')
     setNewDescription('')
@@ -43,6 +50,9 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
     setNewName('')
     setNewDescription('')
     setNewBackend('vector')
+    setNewChunkSize(800)
+    setNewChunkOverlap(100)
+    setNewSectionBased(false)
   }
 
   const openEdit = (e: React.MouseEvent, db: Database) => {
@@ -50,18 +60,29 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
     setEditingDb(db)
     setEditName(db.name)
     setEditDescription(db.description ?? '')
+    setEditChunkSize(db.settings?.chunk?.chunk_size ?? 800)
+    setEditChunkOverlap(db.settings?.chunk?.chunk_overlap ?? 100)
+    setEditSectionBased(db.settings?.chunk?.section_based ?? false)
   }
 
   const closeEdit = () => {
     setEditingDb(null)
     setEditName('')
     setEditDescription('')
+    setEditChunkSize(800)
+    setEditChunkOverlap(100)
+    setEditSectionBased(false)
   }
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingDb || !editName.trim()) return
-    await updateDatabase({ dbId: editingDb.id, name: editName.trim(), description: editDescription.trim() })
+    await updateDatabase({
+      dbId: editingDb.id,
+      name: editName.trim(),
+      description: editDescription.trim(),
+      settings: { chunk: { chunk_size: editChunkSize, chunk_overlap: editChunkOverlap, section_based: editSectionBased } },
+    })
     closeEdit()
   }
 
@@ -137,6 +158,42 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
                   ))}
                 </select>
               </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-gray-600">Chunk settings</span>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={newSectionBased}
+                    onChange={e => setNewSectionBased(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-xs text-gray-600">Section-based chunking</span>
+                </label>
+                <div className={`flex gap-2 ${newSectionBased ? 'opacity-40 pointer-events-none' : ''}`}>
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-xs text-gray-500">Chunk size</label>
+                    <input
+                      type="number"
+                      min={100}
+                      max={8000}
+                      value={newChunkSize}
+                      onChange={e => setNewChunkSize(Number(e.target.value))}
+                      className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-xs text-gray-500">Overlap</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={2000}
+                      value={newChunkOverlap}
+                      onChange={e => setNewChunkOverlap(Number(e.target.value))}
+                      className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+                </div>
+              </div>
               {createError && (
                 <p className="text-xs text-red-600">
                   {(createError as any)?.response?.data?.detail ?? createError.message}
@@ -193,6 +250,42 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
                   rows={2}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
                 />
+              </div>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-gray-600">Chunk settings</span>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editSectionBased}
+                    onChange={e => setEditSectionBased(e.target.checked)}
+                    className="rounded"
+                  />
+                  <span className="text-xs text-gray-600">Section-based chunking</span>
+                </label>
+                <div className={`flex gap-2 ${editSectionBased ? 'opacity-40 pointer-events-none' : ''}`}>
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-xs text-gray-500">Chunk size</label>
+                    <input
+                      type="number"
+                      min={100}
+                      max={8000}
+                      value={editChunkSize}
+                      onChange={e => setEditChunkSize(Number(e.target.value))}
+                      className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 flex-1">
+                    <label className="text-xs text-gray-500">Overlap</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={2000}
+                      value={editChunkOverlap}
+                      onChange={e => setEditChunkOverlap(Number(e.target.value))}
+                      className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                  </div>
+                </div>
               </div>
               {updateError && (
                 <p className="text-xs text-red-600">

@@ -5,8 +5,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from rag_backends.base import StorageBackend
 
-_SPLITTER = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
-
 
 def load_documents(file_path: str, filename: str) -> list[Document]:
     suffix = Path(filename).suffix.lower()
@@ -32,10 +30,24 @@ def load_documents(file_path: str, filename: str) -> list[Document]:
 
 
 async def ingest_from_file(
-    file_path: str, filename: str, document_id: str, backend: StorageBackend
+    file_path: str,
+    filename: str,
+    document_id: str,
+    backend: StorageBackend,
+    chunk_size: int = 800,
+    chunk_overlap: int = 100,
+    section_based: bool = False,
 ) -> int:
+    if section_based:
+        splitter = RecursiveCharacterTextSplitter(
+            separators=["\n\n", "\n"],
+            chunk_size=10_000,
+            chunk_overlap=0,
+        )
+    else:
+        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     raw_docs = load_documents(file_path, filename)
-    chunks = _SPLITTER.split_documents(raw_docs)
+    chunks = splitter.split_documents(raw_docs)
 
     for i, chunk in enumerate(chunks):
         chunk.metadata["document_id"] = document_id

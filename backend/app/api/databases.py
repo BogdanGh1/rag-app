@@ -1,3 +1,4 @@
+from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -5,9 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.retriever_factory import BACKEND_NAMES, evict_database_backend
 from app.db.database import get_db
+from app.db.mongo import get_mongo_db
 from app.db.models import Database, User
 from app.dependencies import get_current_user
-from app.models.requests import CreateDatabaseRequest, UpdateDatabaseRequest
+from app.models.requests import CreateDatabaseRequest, DatabaseSettings, UpdateDatabaseRequest
 from app.models.responses import DatabaseResponse
 
 router = APIRouter()
@@ -18,6 +20,7 @@ async def create_database(
     request: CreateDatabaseRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    mongo: AsyncIOMotorDatabase = Depends(get_mongo_db),
 ):
     if request.backend_type not in BACKEND_NAMES:
         raise HTTPException(
@@ -43,12 +46,20 @@ async def create_database(
             status_code=409, detail=f"A database named {request.name!r} already exists"
         )
 
+    db_settings = request.settings or DatabaseSettings()
+    await mongo.database_settings.update_one(
+        {"db_id": database.id},
+        {"$set": {"db_id": database.id, **db_settings.model_dump()}},
+        upsert=True,
+    )
+
     return DatabaseResponse(
         id=database.id,
         name=database.name,
         description=database.description,
         backend_type=database.backend_type,
         created_at=database.created_at,
+        settings=db_settings,
     )
 
 
@@ -56,11 +67,24 @@ async def create_database(
 async def list_databases(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    mongo: AsyncIOMotorDatabase = Depends(get_mongo_db),
 ):
     result = await db.execute(
         select(Database).where(Database.user_id == current_user.id).order_by(Database.created_at)
     )
     databases = result.scalars().all()
+
+    db_ids = [d.id for d in databases]
+    settings_map: dict[str, DatabaseSettings] = {}
+    async for doc in mongo.database_settings.find({"db_id": {"$in": db_ids}}):
+        db_id_key = doc["db_id"]
+        doc.pop("_id", None)
+        doc.pop("db_id", None)
+        try:
+            settings_map[db_id_key] = DatabaseSettings(**doc)
+        except Exception:
+            settings_map[db_id_key] = DatabaseSettings()
+
     return [
         DatabaseResponse(
             id=d.id,
@@ -68,6 +92,7 @@ async def list_databases(
             description=d.description,
             backend_type=d.backend_type,
             created_at=d.created_at,
+            settings=settings_map.get(d.id, DatabaseSettings()),
         )
         for d in databases
     ]
@@ -79,6 +104,7 @@ async def update_database(
     request: UpdateDatabaseRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    mongo: AsyncIOMotorDatabase = Depends(get_mongo_db),
 ):
     result = await db.execute(
         select(Database).where(Database.id == db_id, Database.user_id == current_user.id)
@@ -104,12 +130,31 @@ async def update_database(
             status_code=409, detail=f"A database named {request.name!r} already exists"
         )
 
+    if request.settings is not None:
+        await mongo.database_settings.update_one(
+            {"db_id": db_id},
+            {"$set": {"db_id": db_id, **request.settings.model_dump()}},
+            upsert=True,
+        )
+
+    doc = await mongo.database_settings.find_one({"db_id": db_id})
+    if doc:
+        doc.pop("_id", None)
+        doc.pop("db_id", None)
+        try:
+            db_settings = DatabaseSettings(**doc)
+        except Exception:
+            db_settings = DatabaseSettings()
+    else:
+        db_settings = DatabaseSettings()
+
     return DatabaseResponse(
         id=database.id,
         name=database.name,
         description=database.description,
         backend_type=database.backend_type,
         created_at=database.created_at,
+        settings=db_settings,
     )
 
 
@@ -118,6 +163,7 @@ async def delete_database(
     db_id: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    mongo: AsyncIOMotorDatabase = Depends(get_mongo_db),
 ):
     result = await db.execute(
         select(Database).where(Database.id == db_id, Database.user_id == current_user.id)
@@ -129,3 +175,4 @@ async def delete_database(
     await db.delete(database)
     await db.commit()
     evict_database_backend(db_id, current_user.id)
+    await mongo.database_settings.delete_one({"db_id": db_id})
