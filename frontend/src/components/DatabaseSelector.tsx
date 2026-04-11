@@ -10,13 +10,17 @@ interface DatabaseSelectorProps {
 }
 
 export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: DatabaseSelectorProps) {
-  const { databases, isLoading, createDatabase, isCreating, createError, deleteDatabase } = useDatabase()
+  const { databases, isLoading, createDatabase, isCreating, createError, updateDatabase, isUpdating, updateError, deleteDatabase } = useDatabase()
   const { backends } = useBackend()
 
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [newBackend, setNewBackend] = useState('vector')
+
+  const [editingDb, setEditingDb] = useState<Database | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editDescription, setEditDescription] = useState('')
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,6 +41,26 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
     setNewName('')
     setNewDescription('')
     setNewBackend('vector')
+  }
+
+  const openEdit = (e: React.MouseEvent, db: Database) => {
+    e.stopPropagation()
+    setEditingDb(db)
+    setEditName(db.name)
+    setEditDescription(db.description ?? '')
+  }
+
+  const closeEdit = () => {
+    setEditingDb(null)
+    setEditName('')
+    setEditDescription('')
+  }
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingDb || !editName.trim()) return
+    await updateDatabase({ dbId: editingDb.id, name: editName.trim(), description: editDescription.trim() })
+    closeEdit()
   }
 
   const handleDelete = (e: React.MouseEvent, dbId: string) => {
@@ -131,6 +155,63 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
         </div>
       )}
 
+      {editingDb && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={closeEdit}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 flex flex-col gap-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 className="text-base font-semibold text-gray-800">Edit database</h2>
+            <form onSubmit={handleEdit} className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-600">Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={e => setEditName(e.target.value)}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  autoFocus
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-600">Description <span className="text-gray-400 font-normal">(optional)</span></label>
+                <textarea
+                  placeholder="What is this database for?"
+                  value={editDescription}
+                  onChange={e => setEditDescription(e.target.value)}
+                  rows={2}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                />
+              </div>
+              {updateError && (
+                <p className="text-xs text-red-600">
+                  {(updateError as any)?.response?.data?.detail ?? updateError.message}
+                </p>
+              )}
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="submit"
+                  disabled={isUpdating || !editName.trim()}
+                  className="flex-1 py-2 text-sm font-medium bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isUpdating ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  type="button"
+                  onClick={closeEdit}
+                  className="flex-1 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {databases.length === 0 ? (
         <p className="text-xs text-gray-400">No databases yet. Create one to get started.</p>
       ) : (
@@ -156,15 +237,26 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
                   {db.backend_type}
                 </span>
               </div>
-              <button
-                onClick={e => handleDelete(e, db.id)}
-                className={`ml-2 opacity-0 group-hover:opacity-100 transition-opacity text-base leading-none shrink-0 ${
-                  db.id === selectedDbId ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-red-600'
-                }`}
-                title="Delete database"
-              >
-                ×
-              </button>
+              <div className="ml-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <button
+                  onClick={e => openEdit(e, db)}
+                  className={`text-lg leading-none px-1.5 py-0.5 rounded ${
+                    db.id === selectedDbId ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-blue-600'
+                  }`}
+                  title="Edit database"
+                >
+                  ✎
+                </button>
+                <button
+                  onClick={e => handleDelete(e, db.id)}
+                  className={`text-xl leading-none px-1.5 py-0.5 rounded ${
+                    db.id === selectedDbId ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-red-600'
+                  }`}
+                  title="Delete database"
+                >
+                  ×
+                </button>
+              </div>
             </div>
           ))}
         </div>

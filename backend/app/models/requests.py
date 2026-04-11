@@ -7,6 +7,11 @@ class CreateDatabaseRequest(BaseModel):
     backend_type: str  # vector | sql | plaintext
 
 
+class UpdateDatabaseRequest(BaseModel):
+    name: str | None = None
+    description: str | None = None
+
+
 class QueryRequest(BaseModel):
     question: str
     db_id: str

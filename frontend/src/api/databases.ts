@@ -19,6 +19,19 @@ export const createDatabase = async ({
   return response.data
 }
 
+export const updateDatabase = async ({
+  dbId,
+  name,
+  description,
+}: {
+  dbId: string
+  name?: string
+  description?: string
+}): Promise<Database> => {
+  const response = await apiClient.patch<Database>(`/databases/${dbId}`, { name, description })
+  return response.data
+}
+
 export const deleteDatabase = async (dbId: string): Promise<void> => {
   await apiClient.delete(`/databases/${dbId}`)
 }

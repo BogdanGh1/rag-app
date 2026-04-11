@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createDatabase, deleteDatabase, getDatabases } from '../api/databases'
+import { createDatabase, deleteDatabase, getDatabases, updateDatabase } from '../api/databases'
 
 export function useDatabase() {
   const queryClient = useQueryClient()
@@ -14,6 +14,11 @@ export function useDatabase() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['databases'] }),
   })
 
+  const updateMutation = useMutation({
+    mutationFn: updateDatabase,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['databases'] }),
+  })
+
   const deleteMutation = useMutation({
     mutationFn: deleteDatabase,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['databases'] }),
@@ -25,6 +30,9 @@ export function useDatabase() {
     createDatabase: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
     createError: createMutation.error,
+    updateDatabase: updateMutation.mutateAsync,
+    isUpdating: updateMutation.isPending,
+    updateError: updateMutation.error,
     deleteDatabase: deleteMutation.mutate,
     isDeleting: deleteMutation.isPending,
   }

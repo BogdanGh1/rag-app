@@ -7,7 +7,7 @@ from app.core.retriever_factory import BACKEND_NAMES, evict_database_backend
 from app.db.database import get_db
 from app.db.models import Database, User
 from app.dependencies import get_current_user
-from app.models.requests import CreateDatabaseRequest
+from app.models.requests import CreateDatabaseRequest, UpdateDatabaseRequest
 from app.models.responses import DatabaseResponse
 
 router = APIRouter()
@@ -71,6 +71,46 @@ async def list_databases(
         )
         for d in databases
     ]
+
+
+@router.patch("/{db_id}", response_model=DatabaseResponse)
+async def update_database(
+    db_id: str,
+    request: UpdateDatabaseRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Database).where(Database.id == db_id, Database.user_id == current_user.id)
+    )
+    database = result.scalar_one_or_none()
+    if database is None:
+        raise HTTPException(status_code=404, detail="Database not found")
+
+    if request.name is not None:
+        if not request.name.strip():
+            raise HTTPException(status_code=400, detail="Database name cannot be empty")
+        database.name = request.name.strip()
+
+    if request.description is not None:
+        database.description = request.description.strip() or None
+
+    try:
+        await db.commit()
+        await db.refresh(database)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=409, detail=f"A database named {request.name!r} already exists"
+        )
+
+    return DatabaseResponse(
+        id=database.id,
+        name=database.name,
+        description=database.description,
+        backend_type=database.backend_type,
+        created_at=database.created_at,
+    )
 
 
 @router.delete("/{db_id}", status_code=204)
