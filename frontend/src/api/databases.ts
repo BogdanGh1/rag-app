@@ -8,12 +8,14 @@ export const getDatabases = async (): Promise<Database[]> => {
 
 export const createDatabase = async ({
   name,
+  description,
   backend_type,
 }: {
   name: string
+  description?: string
   backend_type: string
 }): Promise<Database> => {
-  const response = await apiClient.post<Database>('/databases', { name, backend_type })
+  const response = await apiClient.post<Database>('/databases', { name, description, backend_type })
   return response.data
 }
 

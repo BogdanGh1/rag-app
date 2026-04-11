@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 class CreateDatabaseRequest(BaseModel):
     name: str
+    description: str | None = None
     backend_type: str  # vector | sql | plaintext
 
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class DatabaseResponse(BaseModel):
     id: str
     name: str
+    description: str | None = None
     backend_type: str
     created_at: Any = None
 

@@ -30,6 +30,7 @@ async def create_database(
     database = Database(
         user_id=current_user.id,
         name=request.name.strip(),
+        description=request.description.strip() if request.description else None,
         backend_type=request.backend_type,
     )
     db.add(database)
@@ -45,6 +46,7 @@ async def create_database(
     return DatabaseResponse(
         id=database.id,
         name=database.name,
+        description=database.description,
         backend_type=database.backend_type,
         created_at=database.created_at,
     )
@@ -63,6 +65,7 @@ async def list_databases(
         DatabaseResponse(
             id=d.id,
             name=d.name,
+            description=d.description,
             backend_type=d.backend_type,
             created_at=d.created_at,
         )

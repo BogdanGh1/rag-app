@@ -15,13 +15,19 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
 
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
+  const [newDescription, setNewDescription] = useState('')
   const [newBackend, setNewBackend] = useState('vector')
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newName.trim()) return
-    const db = await createDatabase({ name: newName.trim(), backend_type: newBackend })
+    const db = await createDatabase({
+      name: newName.trim(),
+      description: newDescription.trim() || undefined,
+      backend_type: newBackend,
+    })
     setNewName('')
+    setNewDescription('')
     setShowCreate(false)
     onChange(db)
   }
@@ -29,6 +35,7 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
   const closeModal = () => {
     setShowCreate(false)
     setNewName('')
+    setNewDescription('')
     setNewBackend('vector')
   }
 
@@ -74,6 +81,16 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
                   onChange={e => setNewName(e.target.value)}
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   autoFocus
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-600">Description <span className="text-gray-400 font-normal">(optional)</span></label>
+                <textarea
+                  placeholder="What is this database for?"
+                  value={newDescription}
+                  onChange={e => setNewDescription(e.target.value)}
+                  rows={2}
+                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
                 />
               </div>
               <div className="flex flex-col gap-1">
@@ -130,6 +147,11 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
             >
               <div className="flex flex-col min-w-0">
                 <span className="truncate">{db.name}</span>
+                {db.description && (
+                  <span className={`text-xs font-normal truncate ${db.id === selectedDbId ? 'text-blue-200' : 'text-gray-400'}`}>
+                    {db.description}
+                  </span>
+                )}
                 <span className={`text-xs font-normal ${db.id === selectedDbId ? 'text-blue-200' : 'text-gray-400'}`}>
                   {db.backend_type}
                 </span>

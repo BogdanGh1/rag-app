@@ -1,6 +1,7 @@
 export interface Database {
   id: string
   name: string
+  description?: string
   backend_type: string
   created_at?: string
 }
