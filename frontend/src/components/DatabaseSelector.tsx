@@ -22,6 +22,8 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
 
+  const [confirmDeleteDb, setConfirmDeleteDb] = useState<Database | null>(null)
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newName.trim()) return
@@ -63,10 +65,16 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
     closeEdit()
   }
 
-  const handleDelete = (e: React.MouseEvent, dbId: string) => {
+  const handleDelete = (e: React.MouseEvent, db: Database) => {
     e.stopPropagation()
-    deleteDatabase(dbId)
-    if (dbId === selectedDbId) onDeleteSelected?.()
+    setConfirmDeleteDb(db)
+  }
+
+  const confirmDelete = () => {
+    if (!confirmDeleteDb) return
+    deleteDatabase(confirmDeleteDb.id)
+    if (confirmDeleteDb.id === selectedDbId) onDeleteSelected?.()
+    setConfirmDeleteDb(null)
   }
 
   if (isLoading) {
@@ -212,6 +220,37 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
         </div>
       )}
 
+      {confirmDeleteDb && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setConfirmDeleteDb(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 flex flex-col gap-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 className="text-base font-semibold text-gray-800">Delete database?</h2>
+            <p className="text-sm text-gray-600">
+              <span className="font-medium">"{confirmDeleteDb.name}"</span> and all its documents will be permanently deleted.
+            </p>
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2 text-sm font-medium bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setConfirmDeleteDb(null)}
+                className="flex-1 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {databases.length === 0 ? (
         <p className="text-xs text-gray-400">No databases yet. Create one to get started.</p>
       ) : (
@@ -248,7 +287,7 @@ export function DatabaseSelector({ selectedDbId, onChange, onDeleteSelected }: D
                   ✎
                 </button>
                 <button
-                  onClick={e => handleDelete(e, db.id)}
+                  onClick={e => handleDelete(e, db)}
                   className={`text-xl leading-none px-1.5 py-0.5 rounded ${
                     db.id === selectedDbId ? 'text-blue-200 hover:text-white' : 'text-gray-400 hover:text-red-600'
                   }`}
