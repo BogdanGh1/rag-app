@@ -9,6 +9,7 @@ from app.config import settings
 from app.core.retriever_factory import init_backends
 from app.db import models  # noqa: F401 — registers models with Base metadata
 from app.db.database import Base, engine
+from app.db.mongo import close_mongo, connect_mongo
 
 os.environ["ANONYMIZED_TELEMETRY"] = str(settings.anonymized_telemetry)
 
@@ -18,7 +19,9 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await init_backends()
+    await connect_mongo()
     yield
+    await close_mongo()
 
 
 app = FastAPI(

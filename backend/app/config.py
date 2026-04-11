@@ -28,5 +28,8 @@ class Settings(BaseSettings):
     secret_key: str = "change-me-in-production-use-a-long-random-string"
     access_token_expire_minutes: int = 60 * 24  # 24 hours
 
+    mongodb_url: str = "mongodb://localhost:27017"
+    mongodb_db_name: str = "rag_app"
+
 
 settings = Settings()
