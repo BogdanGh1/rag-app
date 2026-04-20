@@ -42,7 +42,7 @@ def _create_backend(
     backend_type: str, user_id: str, db_id: str, config: BackendConfig
 ) -> StorageBackend:
     if backend_type == "vector":
-        from rag_backends.vector_backend import VectorBackend
+        from rag_backends.vector import VectorBackend
 
         return VectorBackend(
             chroma_persist_dir=os.path.join(config.chroma_persist_dir, user_id, db_id),
@@ -51,12 +51,12 @@ def _create_backend(
         )
 
     if backend_type == "sql":
-        from rag_backends.sql_backend import SQLBackend
+        from rag_backends.sql import SQLBackend
 
         return SQLBackend(db_path=os.path.join(config.sqlite_dir, f"{user_id}_{db_id}.db"))
 
     if backend_type == "plaintext":
-        from rag_backends.plaintext_backend import PlaintextBackend
+        from rag_backends.plaintext import PlaintextBackend
 
         return PlaintextBackend(
             chunks_file=Path(config.bm25_dir) / f"{user_id}_{db_id}.jsonl"

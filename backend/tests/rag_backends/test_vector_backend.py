@@ -4,7 +4,7 @@ import pytest
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
-from rag_backends.vector_backend import VectorBackend
+from rag_backends.vector import VectorBackend
 
 
 class FakeEmbeddings(Embeddings):

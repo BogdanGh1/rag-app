@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 
-from rag_backends.sql_backend import SQLBackend
+from rag_backends.sql import SQLBackend
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 import pytest
 from langchain_core.documents import Document
 
-from rag_backends.plaintext_backend import PlaintextBackend
+from rag_backends.plaintext import PlaintextBackend
 
 
 @pytest.fixture
