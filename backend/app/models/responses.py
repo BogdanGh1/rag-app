@@ -48,3 +48,18 @@ class QueryResponse(BaseModel):
     latency_ms: int
 
 
+class RoutedDatabase(BaseModel):
+    id: str
+    name: str
+    description: str | None = None
+
+
+class SmartQueryResponse(BaseModel):
+    question: str
+    answer: str
+    sources: list[SourceDocument]
+    routed_databases: list[RoutedDatabase]
+    routing_explanation: str
+    latency_ms: int
+
+

@@ -5,13 +5,17 @@ import { DatabaseSelector } from './components/DatabaseSelector'
 import { DocumentList } from './components/DocumentList'
 import { DocumentUploader } from './components/DocumentUploader'
 import { QueryBox } from './components/QueryBox'
+import { SmartChat } from './components/SmartChat'
 import { useAuth } from './contexts/AuthContext'
 import { useDocumentQuery } from './hooks/useQuery'
 import type { Database, QueryRequest } from './types/api'
 
+type View = 'databases' | 'smart-chat'
+
 function App() {
   const { token, username, logout } = useAuth()
   const [selectedDb, setSelectedDb] = useState<Database | null>(null)
+  const [view, setView] = useState<View>('databases')
   const { ask, result, isLoading } = useDocumentQuery()
 
   if (!token) {
@@ -41,14 +45,32 @@ function App() {
       </header>
 
       <div className="flex flex-1">
-        {/* Left sidebar — database panel */}
+        {/* Left sidebar */}
         <aside className="w-72 shrink-0 bg-white border-r border-gray-200 p-5 flex flex-col gap-4">
-          <DatabaseSelector selectedDbId={selectedDb?.id ?? null} onChange={setSelectedDb} onDeleteSelected={() => setSelectedDb(null)} />
+          <button
+            onClick={() => setView('smart-chat')}
+            className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              view === 'smart-chat'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Smart Chat
+          </button>
+          <div className="border-t border-gray-100 pt-3">
+            <DatabaseSelector
+              selectedDbId={view === 'databases' ? (selectedDb?.id ?? null) : null}
+              onChange={db => { setSelectedDb(db); setView('databases') }}
+              onDeleteSelected={() => setSelectedDb(null)}
+            />
+          </div>
         </aside>
 
         {/* Main content */}
         <main className="flex-1 px-8 py-8 flex flex-col">
-          {!selectedDb ? (
+          {view === 'smart-chat' ? (
+            <SmartChat />
+          ) : !selectedDb ? (
             <div className="text-center py-20 text-gray-500">
               <p className="text-lg">Select or create a database to get started.</p>
             </div>

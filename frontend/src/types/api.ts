@@ -58,6 +58,27 @@ export interface QueryRequest {
   llm_model?: string
 }
 
+export interface SmartQueryRequest {
+  question: string
+  top_k?: number
+  llm_model?: string
+}
+
+export interface RoutedDatabase {
+  id: string
+  name: string
+  description?: string
+}
+
+export interface SmartQueryResponse {
+  question: string
+  answer: string
+  sources: SourceDocument[]
+  routed_databases: RoutedDatabase[]
+  routing_explanation: string
+  latency_ms: number
+}
+
 export interface TokenResponse {
   access_token: string
   token_type: string
