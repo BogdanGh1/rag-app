@@ -53,3 +53,14 @@ class VectorBackend(StorageBackend):
             return False
         self._store.delete(ids=results["ids"])
         return True
+
+    async def get_chunks(self, document_id: str) -> list[dict]:
+        results = self._store.get(
+            where={"document_id": document_id},
+            include=["documents", "metadatas"],
+        )
+        chunks = []
+        for i, (doc, meta) in enumerate(zip(results["documents"] or [], results["metadatas"] or [])):
+            chunks.append({"chunk_index": meta.get("chunk_index", i), "content": doc})
+        chunks.sort(key=lambda c: c["chunk_index"])
+        return chunks

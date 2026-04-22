@@ -101,3 +101,10 @@ class PlaintextBackend(StorageBackend):
             return False
         self._save()
         return True
+
+    async def get_chunks(self, document_id: str) -> list[dict]:
+        return [
+            {"chunk_index": c["chunk_index"], "content": c["content"]}
+            for c in self._chunks
+            if c["document_id"] == document_id
+        ]

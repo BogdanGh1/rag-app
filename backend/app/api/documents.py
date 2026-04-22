@@ -14,7 +14,7 @@ from app.db.mongo import get_mongo_db
 from app.db.models import Database, User
 from app.dependencies import get_current_user
 from app.models.requests import ChunkSettings, DatabaseSettings
-from app.models.responses import DocumentListResponse, UploadResponse
+from app.models.responses import ChunkResponse, DocumentListResponse, UploadResponse
 
 router = APIRouter()
 
@@ -79,6 +79,20 @@ async def list_documents(
 ):
     database = await _get_database_or_404(db_id, current_user.id, db)
     return await get_database_backend(db_id, database.backend_type, current_user.id).list_documents()
+
+
+@router.get("/{document_id}/chunks", response_model=list[ChunkResponse])
+async def get_document_chunks(
+    document_id: str,
+    db_id: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    database = await _get_database_or_404(db_id, current_user.id, db)
+    backend = get_database_backend(db_id, database.backend_type, current_user.id)
+    if not hasattr(backend, "get_chunks"):
+        raise HTTPException(status_code=400, detail="Backend does not support chunk inspection")
+    return await backend.get_chunks(document_id)
 
 
 @router.delete("/{document_id}")

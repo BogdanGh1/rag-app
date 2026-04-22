@@ -31,6 +31,11 @@ export interface DocumentListItem {
   created_at?: string
 }
 
+export interface DocumentChunk {
+  chunk_index: number
+  content: string
+}
+
 export interface SourceDocument {
   document_id: string
   filename: string

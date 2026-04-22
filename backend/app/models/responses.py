@@ -35,6 +35,11 @@ class SourceDocument(BaseModel):
     score: float | None = None
 
 
+class ChunkResponse(BaseModel):
+    chunk_index: int
+    content: str
+
+
 class QueryResponse(BaseModel):
     question: str
     answer: str
