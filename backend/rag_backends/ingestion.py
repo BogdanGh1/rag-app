@@ -1,3 +1,4 @@
+import uuid
 from pathlib import Path
 
 from langchain_core.documents import Document
@@ -29,15 +30,51 @@ def load_documents(file_path: str, filename: str) -> list[Document]:
     return loader.load()
 
 
-async def ingest_from_file(
-    file_path: str,
+async def ingest_from_text(
+    text: str,
     filename: str,
-    document_id: str,
     backend: StorageBackend,
     chunk_size: int = 800,
     chunk_overlap: int = 100,
     section_based: bool = False,
-) -> int:
+    document_id: str | None = None,
+) -> tuple[int, str]:
+    if document_id is None:
+        document_id = str(uuid.uuid4())
+
+    if section_based:
+        splitter = RecursiveCharacterTextSplitter(
+            separators=["\n\n", "\n"],
+            chunk_size=10_000,
+            chunk_overlap=0,
+        )
+    else:
+        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+
+    raw_doc = Document(page_content=text, metadata={"filename": filename})
+    chunks = splitter.split_documents([raw_doc])
+
+    for i, chunk in enumerate(chunks):
+        chunk.metadata["document_id"] = document_id
+        chunk.metadata["chunk_index"] = i
+        chunk.metadata["filename"] = filename
+
+    chunk_count = await backend.ingest(document_id, filename, chunks)
+    return chunk_count, document_id
+
+
+async def ingest_from_file(
+    file_path: str,
+    filename: str,
+    backend: StorageBackend,
+    chunk_size: int = 800,
+    chunk_overlap: int = 100,
+    section_based: bool = False,
+    document_id: str | None = None,
+) -> tuple[int, str]:
+    if document_id is None:
+        document_id = str(uuid.uuid4())
+
     if section_based:
         splitter = RecursiveCharacterTextSplitter(
             separators=["\n\n", "\n"],
@@ -54,4 +91,5 @@ async def ingest_from_file(
         chunk.metadata["chunk_index"] = i
         chunk.metadata["filename"] = filename
 
-    return await backend.ingest(document_id, filename, chunks)
+    chunk_count = await backend.ingest(document_id, filename, chunks)
+    return chunk_count, document_id
