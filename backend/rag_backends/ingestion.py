@@ -30,9 +30,28 @@ def load_documents(file_path: str, filename: str) -> list[Document]:
     return loader.load()
 
 
+def _build_splitter(
+    section_based: bool, chunk_size: int, chunk_overlap: int
+) -> RecursiveCharacterTextSplitter:
+    if section_based:
+        return RecursiveCharacterTextSplitter(
+            separators=["\n\n", "\n"],
+            chunk_size=10_000,
+            chunk_overlap=0,
+        )
+    return RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+
+
+def _annotate_chunks(chunks: list[Document], document_id: str, filename: str = "") -> None:
+    for i, chunk in enumerate(chunks):
+        chunk.metadata["document_id"] = document_id
+        chunk.metadata["chunk_index"] = i
+        if filename:
+            chunk.metadata["filename"] = filename
+
+
 async def ingest_from_text(
     text: str,
-    filename: str,
     backend: StorageBackend,
     chunk_size: int = 800,
     chunk_overlap: int = 100,
@@ -42,24 +61,11 @@ async def ingest_from_text(
     if document_id is None:
         document_id = str(uuid.uuid4())
 
-    if section_based:
-        splitter = RecursiveCharacterTextSplitter(
-            separators=["\n\n", "\n"],
-            chunk_size=10_000,
-            chunk_overlap=0,
-        )
-    else:
-        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+    splitter = _build_splitter(section_based, chunk_size, chunk_overlap)
+    chunks = splitter.split_documents([Document(page_content=text, metadata={})])
+    _annotate_chunks(chunks, document_id)
 
-    raw_doc = Document(page_content=text, metadata={"filename": filename})
-    chunks = splitter.split_documents([raw_doc])
-
-    for i, chunk in enumerate(chunks):
-        chunk.metadata["document_id"] = document_id
-        chunk.metadata["chunk_index"] = i
-        chunk.metadata["filename"] = filename
-
-    chunk_count = await backend.ingest(document_id, filename, chunks)
+    chunk_count = await backend.ingest(document_id, "", chunks)
     return chunk_count, document_id
 
 
@@ -75,21 +81,9 @@ async def ingest_from_file(
     if document_id is None:
         document_id = str(uuid.uuid4())
 
-    if section_based:
-        splitter = RecursiveCharacterTextSplitter(
-            separators=["\n\n", "\n"],
-            chunk_size=10_000,
-            chunk_overlap=0,
-        )
-    else:
-        splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    raw_docs = load_documents(file_path, filename)
-    chunks = splitter.split_documents(raw_docs)
-
-    for i, chunk in enumerate(chunks):
-        chunk.metadata["document_id"] = document_id
-        chunk.metadata["chunk_index"] = i
-        chunk.metadata["filename"] = filename
+    splitter = _build_splitter(section_based, chunk_size, chunk_overlap)
+    chunks = splitter.split_documents(load_documents(file_path, filename))
+    _annotate_chunks(chunks, document_id, filename)
 
     chunk_count = await backend.ingest(document_id, filename, chunks)
     return chunk_count, document_id
