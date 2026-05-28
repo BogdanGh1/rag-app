@@ -53,6 +53,7 @@ def _annotate_chunks(chunks: list[Document], document_id: str, filename: str = "
 async def ingest_from_text(
     text: str,
     backend: StorageBackend,
+    filename: str = "",
     chunk_size: int = 800,
     chunk_overlap: int = 100,
     section_based: bool = False,
@@ -63,9 +64,9 @@ async def ingest_from_text(
 
     splitter = _build_splitter(section_based, chunk_size, chunk_overlap)
     chunks = splitter.split_documents([Document(page_content=text, metadata={})])
-    _annotate_chunks(chunks, document_id)
+    _annotate_chunks(chunks, document_id, filename)
 
-    chunk_count = await backend.ingest(document_id, "", chunks)
+    chunk_count = await backend.ingest(document_id, filename, chunks)
     return chunk_count, document_id
 
 
