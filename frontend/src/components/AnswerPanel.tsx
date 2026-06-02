@@ -21,6 +21,12 @@ export function AnswerPanel({ result, isLoading }: AnswerPanelProps) {
 
   return (
     <div className="space-y-3">
+      {result.rewritten_question && (
+        <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+          <p className="text-xs font-semibold text-amber-700 mb-1">Rewritten question</p>
+          <p className="text-sm text-amber-900 italic">{result.rewritten_question}</p>
+        </div>
+      )}
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-sm font-semibold text-blue-900">Answer</h3>

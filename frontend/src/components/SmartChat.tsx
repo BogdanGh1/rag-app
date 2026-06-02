@@ -57,6 +57,12 @@ function SmartAnswerPanel({ result, isLoading, error }: {
   return (
     <div className="space-y-3">
       <RoutingBadge result={result} />
+      {result.rewritten_question && (
+        <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+          <p className="text-xs font-semibold text-amber-700 mb-1">Rewritten question</p>
+          <p className="text-sm text-amber-900 italic">{result.rewritten_question}</p>
+        </div>
+      )}
       <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-sm font-semibold text-blue-900">Answer</h3>
@@ -98,6 +104,7 @@ export function SmartChat() {
   const { models } = useModels()
   const [question, setQuestion] = useState('')
   const [rerank, setRerank] = useState(false)
+  const [rewriteQuestion, setRewriteQuestion] = useState(false)
   const [llmModel, setLlmModel] = useState('')
 
   useEffect(() => {
@@ -107,7 +114,7 @@ export function SmartChat() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim() || isLoading) return
-    ask({ question: question.trim(), rerank, llm_model: llmModel || undefined })
+    ask({ question: question.trim(), rerank, rewrite_question: rewriteQuestion, llm_model: llmModel || undefined })
   }
 
   return (
@@ -135,6 +142,15 @@ export function SmartChat() {
             className="w-4 h-4 accent-blue-600"
           />
           Rerank
+        </label>
+        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none px-2">
+          <input
+            type="checkbox"
+            checked={rewriteQuestion}
+            onChange={e => setRewriteQuestion(e.target.checked)}
+            className="w-4 h-4 accent-blue-600"
+          />
+          Rewrite
         </label>
         {models.length > 0 && (
           <select

@@ -42,6 +42,7 @@ class ChunkResponse(BaseModel):
 
 class QueryResponse(BaseModel):
     question: str
+    rewritten_question: str | None = None
     answer: str
     sources: list[SourceDocument]
     backend_used: str
@@ -56,6 +57,7 @@ class RoutedDatabase(BaseModel):
 
 class SmartQueryResponse(BaseModel):
     question: str
+    rewritten_question: str | None = None
     answer: str
     sources: list[SourceDocument]
     routed_databases: list[RoutedDatabase]

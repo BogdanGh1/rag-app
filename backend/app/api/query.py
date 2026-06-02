@@ -19,6 +19,27 @@ from app.models.responses import QueryResponse, RoutedDatabase, SmartQueryRespon
 router = APIRouter()
 
 
+async def _rewrite_question(question: str, llm_model: str | None) -> str:
+    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    model = llm_model or settings.llm_model
+    response = await client.chat.completions.create(
+        model=model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You are a query-rewriting assistant. "
+                    "Rewrite the user's question to be clearer, more specific, and better suited for document retrieval. "
+                    "Return only the rewritten question with no preamble or explanation."
+                ),
+            },
+            {"role": "user", "content": question},
+        ],
+        temperature=0,
+    )
+    return response.choices[0].message.content.strip()
+
+
 @router.post("/query", response_model=QueryResponse)
 async def query_documents(
     request: QueryRequest,
@@ -35,19 +56,25 @@ async def query_documents(
         raise HTTPException(status_code=404, detail="Database not found")
 
     try:
+        rewritten_question = None
+        if request.rewrite_question:
+            rewritten_question = await _rewrite_question(request.question, request.llm_model)
+
+        active_question = rewritten_question or request.question
+
         backend = get_database_backend(request.db_id, database.backend_type, current_user.id)
         retriever = backend.get_retriever(top_k=request.top_k)
 
         start = time.time()
 
         if request.rerank:
-            docs = retriever.invoke(request.question)
-            docs = rerank_docs(docs, request.question, llm_model=request.llm_model)
-            answer = answer_from_docs(docs, request.question, llm_model=request.llm_model)
+            docs = retriever.invoke(active_question)
+            docs = rerank_docs(docs, active_question, llm_model=request.llm_model)
+            answer = answer_from_docs(docs, active_question, llm_model=request.llm_model)
             context = docs
         else:
             chain = build_chain(retriever, llm_model=request.llm_model)
-            chain_result = chain.invoke(request.question)
+            chain_result = chain.invoke(active_question)
             answer = chain_result["answer"]
             context = chain_result["context"]
 
@@ -55,6 +82,7 @@ async def query_documents(
 
         return QueryResponse(
             question=request.question,
+            rewritten_question=rewritten_question,
             answer=answer,
             sources=format_sources(context),
             backend_used=database.backend_type,
@@ -131,22 +159,29 @@ async def smart_query(
         )
 
     try:
+        rewritten_question = None
+        if request.rewrite_question:
+            rewritten_question = await _rewrite_question(request.question, request.llm_model)
+
+        active_question = rewritten_question or request.question
+
         start = time.time()
         all_docs = []
         for database in routed:
             backend = get_database_backend(database.id, database.backend_type, current_user.id)
             retriever = backend.get_retriever(top_k=request.top_k)
-            docs = retriever.invoke(request.question)
+            docs = retriever.invoke(active_question)
             all_docs.extend(docs)
 
         if request.rerank:
-            all_docs = rerank_docs(all_docs, request.question, llm_model=request.llm_model)
+            all_docs = rerank_docs(all_docs, active_question, llm_model=request.llm_model)
 
-        answer = answer_from_docs(all_docs, request.question, llm_model=request.llm_model)
+        answer = answer_from_docs(all_docs, active_question, llm_model=request.llm_model)
         latency_ms = int((time.time() - start) * 1000)
 
         return SmartQueryResponse(
             question=request.question,
+            rewritten_question=rewritten_question,
             answer=answer,
             sources=format_sources(all_docs),
             routed_databases=[

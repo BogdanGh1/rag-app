@@ -45,6 +45,7 @@ export interface SourceDocument {
 
 export interface QueryResponse {
   question: string
+  rewritten_question?: string
   answer: string
   sources: SourceDocument[]
   backend_used: string
@@ -57,6 +58,7 @@ export interface QueryRequest {
   top_k?: number
   llm_model?: string
   rerank?: boolean
+  rewrite_question?: boolean
 }
 
 export interface SmartQueryRequest {
@@ -64,6 +66,7 @@ export interface SmartQueryRequest {
   top_k?: number
   llm_model?: string
   rerank?: boolean
+  rewrite_question?: boolean
 }
 
 export interface RoutedDatabase {
@@ -74,6 +77,7 @@ export interface RoutedDatabase {
 
 export interface SmartQueryResponse {
   question: string
+  rewritten_question?: string
   answer: string
   sources: SourceDocument[]
   routed_databases: RoutedDatabase[]

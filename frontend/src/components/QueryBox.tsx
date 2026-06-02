@@ -11,6 +11,7 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
   const [question, setQuestion] = useState('')
   const [topK, setTopK] = useState(4)
   const [rerank, setRerank] = useState(false)
+  const [rewriteQuestion, setRewriteQuestion] = useState(false)
   const [llmModel, setLlmModel] = useState('')
   const { models } = useModels()
 
@@ -21,7 +22,7 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim()) return
-    onAsk({ question: question.trim(), top_k: topK, rerank, llm_model: llmModel || undefined })
+    onAsk({ question: question.trim(), top_k: topK, rerank, rewrite_question: rewriteQuestion, llm_model: llmModel || undefined })
   }
 
   return (
@@ -58,6 +59,15 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
             className="w-4 h-4 accent-blue-600"
           />
           Rerank
+        </label>
+        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={rewriteQuestion}
+            onChange={e => setRewriteQuestion(e.target.checked)}
+            className="w-4 h-4 accent-blue-600"
+          />
+          Rewrite question
         </label>
         {models.length > 0 && (
           <select

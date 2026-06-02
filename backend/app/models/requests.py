@@ -30,6 +30,7 @@ class QueryRequest(BaseModel):
     top_k: int = Field(default=4, ge=1, le=20)
     llm_model: str | None = None
     rerank: bool = False
+    rewrite_question: bool = False
 
 
 class SmartQueryRequest(BaseModel):
@@ -37,3 +38,4 @@ class SmartQueryRequest(BaseModel):
     top_k: int = Field(default=4, ge=1, le=20)
     llm_model: str | None = None
     rerank: bool = False
+    rewrite_question: bool = False
