@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useModels } from '../hooks/useModels'
 import type { QueryRequest } from '../types/api'
 
 interface QueryBoxProps {
@@ -10,11 +11,17 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
   const [question, setQuestion] = useState('')
   const [topK, setTopK] = useState(4)
   const [rerank, setRerank] = useState(false)
+  const [llmModel, setLlmModel] = useState('')
+  const { models } = useModels()
+
+  useEffect(() => {
+    if (models.length > 0 && !llmModel) setLlmModel(models[0])
+  }, [models, llmModel])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim()) return
-    onAsk({ question: question.trim(), top_k: topK, rerank })
+    onAsk({ question: question.trim(), top_k: topK, rerank, llm_model: llmModel || undefined })
   }
 
   return (
@@ -30,7 +37,7 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e)
         }}
       />
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <label className="flex items-center gap-2 text-sm text-gray-700">
           Top-K:
           <input
@@ -52,6 +59,17 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
           />
           Rerank
         </label>
+        {models.length > 0 && (
+          <select
+            value={llmModel}
+            onChange={e => setLlmModel(e.target.value)}
+            className="border border-gray-300 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {models.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        )}
         <button
           type="submit"
           disabled={isLoading || !question.trim()}

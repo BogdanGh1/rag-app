@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useModels } from '../hooks/useModels'
 import { useSmartQuery } from '../hooks/useQuery'
 import type { SmartQueryResponse } from '../types/api'
 
@@ -94,13 +95,19 @@ function SmartAnswerPanel({ result, isLoading, error }: {
 
 export function SmartChat() {
   const { ask, result, isLoading, error } = useSmartQuery()
+  const { models } = useModels()
   const [question, setQuestion] = useState('')
   const [rerank, setRerank] = useState(false)
+  const [llmModel, setLlmModel] = useState('')
+
+  useEffect(() => {
+    if (models.length > 0 && !llmModel) setLlmModel(models[0])
+  }, [models, llmModel])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim() || isLoading) return
-    ask({ question: question.trim(), rerank })
+    ask({ question: question.trim(), rerank, llm_model: llmModel || undefined })
   }
 
   return (
@@ -129,6 +136,17 @@ export function SmartChat() {
           />
           Rerank
         </label>
+        {models.length > 0 && (
+          <select
+            value={llmModel}
+            onChange={e => setLlmModel(e.target.value)}
+            className="border border-gray-300 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {models.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        )}
         <button
           type="submit"
           disabled={isLoading || !question.trim()}
