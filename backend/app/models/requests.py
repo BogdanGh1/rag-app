@@ -29,9 +29,11 @@ class QueryRequest(BaseModel):
     db_id: str
     top_k: int = Field(default=4, ge=1, le=20)
     llm_model: str | None = None
+    rerank: bool = False
 
 
 class SmartQueryRequest(BaseModel):
     question: str
     top_k: int = Field(default=4, ge=1, le=20)
     llm_model: str | None = None
+    rerank: bool = False

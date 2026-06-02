@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core.qa_chain import answer_from_docs, build_chain, format_sources
+from app.core.reranker import rerank_docs
 from app.core.retriever_factory import get_database_backend
 from app.db.database import get_db
 from app.db.models import Database, User
@@ -36,16 +37,26 @@ async def query_documents(
     try:
         backend = get_database_backend(request.db_id, database.backend_type, current_user.id)
         retriever = backend.get_retriever(top_k=request.top_k)
-        chain = build_chain(retriever, llm_model=request.llm_model)
 
         start = time.time()
-        chain_result = chain.invoke(request.question)
+
+        if request.rerank:
+            docs = retriever.invoke(request.question)
+            docs = rerank_docs(docs, request.question, llm_model=request.llm_model)
+            answer = answer_from_docs(docs, request.question, llm_model=request.llm_model)
+            context = docs
+        else:
+            chain = build_chain(retriever, llm_model=request.llm_model)
+            chain_result = chain.invoke(request.question)
+            answer = chain_result["answer"]
+            context = chain_result["context"]
+
         latency_ms = int((time.time() - start) * 1000)
 
         return QueryResponse(
             question=request.question,
-            answer=chain_result["answer"],
-            sources=format_sources(chain_result["context"]),
+            answer=answer,
+            sources=format_sources(context),
             backend_used=database.backend_type,
             latency_ms=latency_ms,
         )
@@ -127,6 +138,9 @@ async def smart_query(
             retriever = backend.get_retriever(top_k=request.top_k)
             docs = retriever.invoke(request.question)
             all_docs.extend(docs)
+
+        if request.rerank:
+            all_docs = rerank_docs(all_docs, request.question, llm_model=request.llm_model)
 
         answer = answer_from_docs(all_docs, request.question, llm_model=request.llm_model)
         latency_ms = int((time.time() - start) * 1000)

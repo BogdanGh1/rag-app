@@ -56,12 +56,14 @@ export interface QueryRequest {
   db_id: string
   top_k?: number
   llm_model?: string
+  rerank?: boolean
 }
 
 export interface SmartQueryRequest {
   question: string
   top_k?: number
   llm_model?: string
+  rerank?: boolean
 }
 
 export interface RoutedDatabase {

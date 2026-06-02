@@ -95,11 +95,12 @@ function SmartAnswerPanel({ result, isLoading, error }: {
 export function SmartChat() {
   const { ask, result, isLoading, error } = useSmartQuery()
   const [question, setQuestion] = useState('')
+  const [rerank, setRerank] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim() || isLoading) return
-    ask({ question: question.trim() })
+    ask({ question: question.trim(), rerank })
   }
 
   return (
@@ -119,6 +120,15 @@ export function SmartChat() {
           disabled={isLoading}
           className="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60"
         />
+        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none px-2">
+          <input
+            type="checkbox"
+            checked={rerank}
+            onChange={e => setRerank(e.target.checked)}
+            className="w-4 h-4 accent-blue-600"
+          />
+          Rerank
+        </label>
         <button
           type="submit"
           disabled={isLoading || !question.trim()}

@@ -9,11 +9,12 @@ interface QueryBoxProps {
 export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
   const [question, setQuestion] = useState('')
   const [topK, setTopK] = useState(4)
+  const [rerank, setRerank] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!question.trim()) return
-    onAsk({ question: question.trim(), top_k: topK })
+    onAsk({ question: question.trim(), top_k: topK, rerank })
   }
 
   return (
@@ -41,6 +42,15 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
             className="w-24"
           />
           <span className="w-4 text-center font-mono">{topK}</span>
+        </label>
+        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={rerank}
+            onChange={e => setRerank(e.target.checked)}
+            className="w-4 h-4 accent-blue-600"
+          />
+          Rerank
         </label>
         <button
           type="submit"
