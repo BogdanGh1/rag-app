@@ -21,8 +21,10 @@ backend, runs a question through it, and scores every metric in one `QuestionEva
 """
 
 import json
+import pickle
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from langchain_core.documents import Document
 from langchain_core.output_parsers import StrOutputParser
@@ -307,12 +309,23 @@ def evaluate_question(
     chain,
     llm_model: str,
     openai_api_key: str,
+    cache_dir: str | None = None,
 ) -> QuestionEval:
     """Run *question* through *chain* and score every metric into a `QuestionEval`.
 
     *chain* is a chain built by `build_eval_chain` (or `build_chain`); invoking it
     with a question string returns ``{"context": [Document, ...], "question", "answer"}``.
+
+    If *cache_dir* is given, the result is pickled to ``{cache_dir}/{expected_filename}.pk``.
+    A cached file is loaded and returned instead of re-running the (LLM-backed) evaluation.
     """
+    cache_path = (
+        Path(cache_dir) / f"{expected_filename}.pk" if cache_dir else None
+    )
+    if cache_path is not None and cache_path.exists():
+        with cache_path.open("rb") as f:
+            return pickle.load(f)
+
     result = chain.invoke(question)
     context_docs: list[Document] = result["context"]
     answer: str = result["answer"]
@@ -324,7 +337,7 @@ def evaluate_question(
     relevance, relevance_reason = evaluate_answer_relevance(question, answer, llm)
     similar = _evaluate_answer(answer, expected_answer, llm)
 
-    return QuestionEval(
+    question_eval = QuestionEval(
         question=question,
         answer=answer,
         expected_answer=expected_answer,
@@ -339,23 +352,33 @@ def evaluate_question(
         expected_filename=expected_filename,
     )
 
+    if cache_path is not None:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        with cache_path.open("wb") as f:
+            pickle.dump(question_eval, f)
+
+    return question_eval
+
 
 def evaluate_questions(
     items: list[tuple[str, str, str]],
     chain,
     llm_model: str,
     openai_api_key: str,
-    max_workers: int = 8,
+    max_workers: int = 12,
+    cache_dir: str | None = None,
 ) -> list[QuestionEval]:
     """Evaluate a batch of (question, expected_answer, expected_filename) in parallel.
 
     Order is preserved. Each item runs the chain and all metrics independently.
+    If *cache_dir* is given, each result is cached to ``{cache_dir}/{expected_filename}.pk``
+    and reused on subsequent runs (see `evaluate_question`).
     """
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         return list(
             executor.map(
                 lambda it: evaluate_question(
-                    it[0], it[1], it[2], chain, llm_model, openai_api_key
+                    it[0], it[1], it[2], chain, llm_model, openai_api_key, cache_dir
                 ),
                 items,
             )
