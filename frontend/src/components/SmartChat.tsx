@@ -125,51 +125,56 @@ export function SmartChat() {
           Ask anything — the right database(s) will be selected automatically based on your question.
         </p>
       </div>
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="text"
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <textarea
           value={question}
           onChange={e => setQuestion(e.target.value)}
           placeholder="Ask a question across all your databases..."
           disabled={isLoading}
-          className="flex-1 border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-60"
+          rows={14}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:opacity-60"
+          onKeyDown={e => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e)
+          }}
         />
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none px-2">
-          <input
-            type="checkbox"
-            checked={rerank}
-            onChange={e => setRerank(e.target.checked)}
-            className="w-4 h-4 accent-blue-600"
-          />
-          Rerank
-        </label>
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none px-2">
-          <input
-            type="checkbox"
-            checked={rewriteQuestion}
-            onChange={e => setRewriteQuestion(e.target.checked)}
-            className="w-4 h-4 accent-blue-600"
-          />
-          Rewrite
-        </label>
-        {models.length > 0 && (
-          <select
-            value={llmModel}
-            onChange={e => setLlmModel(e.target.value)}
-            className="border border-gray-300 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <div className="flex items-center gap-4 flex-wrap">
+          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rerank}
+              onChange={e => setRerank(e.target.checked)}
+              className="w-4 h-4 accent-blue-600"
+            />
+            Rerank
+          </label>
+          <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rewriteQuestion}
+              onChange={e => setRewriteQuestion(e.target.checked)}
+              className="w-4 h-4 accent-blue-600"
+            />
+            Rewrite question
+          </label>
+          {models.length > 0 && (
+            <select
+              value={llmModel}
+              onChange={e => setLlmModel(e.target.value)}
+              className="border border-gray-300 rounded-lg px-2 py-1 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              {models.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          )}
+          <button
+            type="submit"
+            disabled={isLoading || !question.trim()}
+            className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {models.map(m => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        )}
-        <button
-          type="submit"
-          disabled={isLoading || !question.trim()}
-          className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors whitespace-nowrap"
-        >
-          {isLoading ? 'Thinking...' : 'Ask'}
-        </button>
+            {isLoading ? 'Thinking...' : 'Ask'}
+          </button>
+        </div>
       </form>
       <SmartAnswerPanel result={result} isLoading={isLoading} error={error} />
     </div>

@@ -32,8 +32,8 @@ export function QueryBox({ onAsk, isLoading }: QueryBoxProps) {
         value={question}
         onChange={e => setQuestion(e.target.value)}
         placeholder="Ask something about your documents..."
-        rows={8}
-        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        rows={14}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
         onKeyDown={e => {
           if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleSubmit(e)
         }}
