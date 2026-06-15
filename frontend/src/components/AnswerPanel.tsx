@@ -56,7 +56,7 @@ export function AnswerPanel({ result, isLoading }: AnswerPanelProps) {
                       </p>
                     )}
                   </div>
-                  <p className="text-xs text-gray-600 line-clamp-3">{source.content_preview}</p>
+                  <p className="text-xs text-gray-600 whitespace-pre-wrap">{source.content}</p>
                 </div>
               ))}
             </div>

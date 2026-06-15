@@ -39,7 +39,7 @@ export interface DocumentChunk {
 export interface SourceDocument {
   document_id: string
   filename: string
-  content_preview: string
+  content: string
   score?: number
 }
 

@@ -31,7 +31,7 @@ class DocumentListResponse(BaseModel):
 class SourceDocument(BaseModel):
     document_id: str
     filename: str
-    content_preview: str
+    content: str
     score: float | None = None
 
 

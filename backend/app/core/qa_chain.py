@@ -39,7 +39,7 @@ def format_sources(docs: list[Document]) -> list[SourceDocument]:
         SourceDocument(
             document_id=doc.metadata.get("document_id", ""),
             filename=doc.metadata.get("filename", ""),
-            content_preview=doc.page_content[:200],
+            content=doc.page_content,
             score=doc.metadata.get("score"),
         )
         for doc in docs
