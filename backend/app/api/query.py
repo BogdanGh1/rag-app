@@ -70,7 +70,10 @@ async def query_documents(
         if request.rerank:
             docs = retriever.invoke(active_question)
             docs = rerank_docs(docs, active_question, llm_model=request.llm_model)
-            answer = answer_from_docs(docs, active_question, llm_model=request.llm_model)
+            if not docs:
+                answer = "I don't have enough information to answer this question based on the provided documents."
+            else:
+                answer = answer_from_docs(docs, active_question, llm_model=request.llm_model)
             context = docs
         else:
             chain = build_chain(retriever, llm_model=request.llm_model)
@@ -176,7 +179,10 @@ async def smart_query(
         if request.rerank:
             all_docs = rerank_docs(all_docs, active_question, llm_model=request.llm_model)
 
-        answer = answer_from_docs(all_docs, active_question, llm_model=request.llm_model)
+        if not all_docs:
+            answer = "I don't have enough information to answer this question based on the provided documents."
+        else:
+            answer = answer_from_docs(all_docs, active_question, llm_model=request.llm_model)
         latency_ms = int((time.time() - start) * 1000)
 
         return SmartQueryResponse(
