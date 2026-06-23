@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 from app.config import settings
@@ -40,3 +41,8 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api/v1")
+
+# Serve the built frontend (single-service deploy). Mounted last so /api/v1 wins.
+_frontend_dist = os.getenv("FRONTEND_DIST", "/app/frontend/dist")
+if os.path.isdir(_frontend_dist):
+    app.mount("/", StaticFiles(directory=_frontend_dist, html=True), name="frontend")
